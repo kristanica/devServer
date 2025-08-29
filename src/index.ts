@@ -1,13 +1,16 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import OpenAI from "openai";
-
+import admin from "firebase-admin";
+import serviceAccount from "../ServiceAccount.json";
+import { ServiceAccount } from "firebase-admin";
 interface IUserRequest extends express.Request {
-  user: any;
+  user?: any;
 }
 import dotenv from "dotenv";
-import { auth } from "firebase-admin";
+
 dotenv.config();
+
 const openai = new OpenAI({
   apiKey: process.env.API_KEY,
 });
@@ -15,7 +18,11 @@ const PORT = 8081;
 const corsOptions = {
   origin: "*",
 };
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount as ServiceAccount),
+});
 
+const auth = admin.auth();
 const app = express();
 
 app.use(cors(corsOptions));
@@ -33,7 +40,7 @@ const middleWare = async (
     if (!token) {
       return res.status(400).json({ message: "Invalid Token" });
     }
-    const decodedToken = await auth().verifyIdToken(token);
+    const decodedToken = await auth.verifyIdToken(token);
     req.user = decodedToken;
     next();
   } catch {
@@ -41,11 +48,11 @@ const middleWare = async (
   }
 };
 
-app.post("/evaluate", async (req: Request, res: Response) => {
+app.post("/evaluate", middleWare, async (req: Request, res: Response) => {
   const { prompt } = req.body;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-3.5-turbo",
     messages: [
       {
         role: "user",
