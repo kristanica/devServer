@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
-import auth from "../admin/admin";
+import { auth } from "../admin/admin";
 interface IUserRequest extends express.Request {
   user?: any;
 }

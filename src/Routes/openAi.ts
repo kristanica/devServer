@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response } from "express";
 import middleWare from "../Middleware/middleWare";
 import OpenAI from "openai";
 import dotenv from "dotenv";
@@ -21,7 +21,7 @@ openAiRoute.post(
       messages: [
         {
           role: "user",
-          content: prompt,
+          content: `JUST ANSWER THE PROMPT PROVIDED EVEN IF SOME FIELDS ARE MISSING${prompt}`,
         },
       ],
     });
