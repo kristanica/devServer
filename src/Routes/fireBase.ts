@@ -42,4 +42,65 @@ fireBaseRoute.get(
   }
 );
 
+fireBaseRoute.get(
+  "/getAllData/:subject",
+  middleWare,
+  async (req: Request, res: Response) => {
+    try {
+      const { subject } = req.params;
+
+      const lessonRef = db.collection(subject);
+
+      const lessonSnapShot = await lessonRef.get();
+
+      const lesson = await Promise.all(
+        lessonSnapShot.docs.map(async (lessonDoc) => {
+          const levelsRef = db
+            .collection(subject)
+            .doc(lessonDoc.id)
+            .collection("Levels");
+
+          const levelSnapShot = await levelsRef.get();
+
+          const levels = await Promise.all(
+            levelSnapShot.docs.map(async (levelDoc) => {
+              const stagesRef = db
+                .collection(subject)
+                .doc(lessonDoc.id)
+                .collection("Levels")
+                .doc(levelDoc.id)
+                .collection("Stages");
+
+              const stagesSnapShot = await stagesRef.get();
+              const stages = stagesSnapShot.docs.map((stageDoc) => ({
+                id: stageDoc.id,
+                ...stageDoc.data(),
+              }));
+
+              return {
+                id: levelDoc.id,
+                ...levelDoc.data(),
+                stages,
+              };
+            })
+          );
+          return {
+            id: lessonDoc.id,
+            ...lessonDoc.data(),
+            levels,
+          };
+        })
+      );
+
+      return res.status(200).json(lesson);
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({
+          message: "Somethign went wrong when fetching the lesson " + error,
+        });
+    }
+  }
+);
 export default fireBaseRoute;
