@@ -21,7 +21,7 @@ openAiRoute.post(
       messages: [
         {
           role: "user",
-          content: `JUST ANSWER THE PROMPT PROVIDED EVEN IF SOME FIELDS ARE MISSING${prompt}`,
+          content: ` `,
         },
       ],
     });
