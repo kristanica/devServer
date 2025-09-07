@@ -1,0 +1,215 @@
+import express, { Request, Response } from "express";
+import { adminMiddleWare, middleWare } from "../Middleware/middleWare";
+
+import { db } from "../admin/admin";
+
+import * as admin from "firebase-admin";
+
+const fireBaseAdminRoute = express();
+
+//Still not inused kasi need ata naka deploy na server dito
+fireBaseAdminRoute.post(
+  "/setAdmin",
+  middleWare,
+
+  async (req: Request, res: Response) => {
+    try {
+      const { uid } = req.body;
+      await admin.auth().setCustomUserClaims(uid, { admin: true });
+
+      return res
+        .status(200)
+        .json({ message: "Admin has been set successully" });
+    } catch (error) {
+      console.log(error);
+
+      return res.status(500).json({ message: error });
+    }
+  }
+);
+
+fireBaseAdminRoute.get(
+  "/getAllLevel/:category",
+  middleWare,
+  adminMiddleWare,
+  async (req: Request, res: Response) => {
+    try {
+      const { category } = req.params;
+
+      const subjectRef = (await db.collection(category).get()).docs;
+
+      const lessonData = await Promise.all(
+        subjectRef.map(async (lessonDoc) => {
+          const levelRef = (
+            await db
+              .collection(category)
+              .doc(lessonDoc.id)
+              .collection("Levels")
+              .get()
+          ).docs;
+          const levels = levelRef.map((levelDoc) => ({
+            id: levelDoc.id,
+            ...levelDoc.data(),
+          }));
+          return {
+            id: lessonDoc.id,
+            levelsData: levels,
+            ...lessonDoc.data(),
+          };
+        })
+      );
+      return res.status(200).json(lessonData);
+    } catch (error) {
+      return res.status(500).json({ message: error });
+    }
+  }
+);
+
+fireBaseAdminRoute.post(
+  "/addLevel",
+  middleWare,
+  async (req: Request, res: Response) => {
+    const {
+      category,
+      lessonId,
+    }: {
+      category: string;
+      lessonId: string;
+    } = req.body;
+    try {
+      const lessonsData = (
+        await db.collection(category).doc(lessonId).collection("Levels").get()
+      ).docs;
+
+      const newLevelNumber = lessonsData.map((item) => {
+        const match = item.id.match(/Level(\d+)/);
+        return match ? parseInt(match[1]) : 0;
+      });
+
+      const nextNumber =
+        (newLevelNumber!.length > 0 ? Math.max(...newLevelNumber!) : 0) + 1;
+
+      const newLevelid = `Level${nextNumber}`;
+
+      await db
+        .collection(category)
+        .doc(lessonId)
+        .collection("Levels")
+        .doc(newLevelid)
+        .set({
+          Level: nextNumber,
+          createdAt: new Date(),
+        });
+
+      return res.status(200).json({
+        message: `Sucessfully added Level ${nextNumber} under ${lessonId}!`,
+      });
+    } catch (error) {
+      return res.status(500).json({ message: error });
+    }
+  }
+);
+
+fireBaseAdminRoute.post(
+  "/addLesson",
+  middleWare,
+  async (req: Request, res: Response) => {
+    const { category }: { category: string } = req.body;
+    try {
+      const lessonData = (await db.collection(category).get()).docs;
+      const newLessonNumber = lessonData.map((item) => {
+        const match = item.id.match(/Lesson(\d+)/);
+        return match ? parseInt(match[1]) : 0;
+      });
+
+      const nextNumber =
+        (newLessonNumber!.length > 0 ? Math.max(...newLessonNumber!) : 0) + 1;
+
+      const newLessonId = `Lesson${nextNumber}`;
+
+      await db.collection(category).doc(newLessonId).set({
+        Lesson: nextNumber,
+        createdAt: new Date(),
+      });
+
+      await db
+        .collection(category)
+        .doc(newLessonId)
+        .collection("Levels")
+        .doc("Level1")
+        .set({
+          lesson: 1,
+          createdAt: new Date(),
+        });
+
+      return res
+        .status(200)
+        .json({ message: `Lesson ${nextNumber} has been added sucessfully!` });
+    } catch (error) {
+      return res.status(500).json({ message: error });
+    }
+  }
+);
+
+fireBaseAdminRoute.post(
+  "/deleteLessons",
+  middleWare,
+  async (req: Request, res: Response) => {
+    try {
+      const { category, lessonId } = req.body;
+      const lessonRef = await db
+        .collection(category)
+        .doc(lessonId)
+        .collection("Levels")
+        .get();
+
+      if (lessonRef.empty) {
+        return res
+          .status(400)
+          .json({ message: "There are no lesson to delete" });
+      }
+
+      const batch = admin.firestore().batch();
+
+      lessonRef.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+
+      await batch.commit();
+
+      return res
+        .status(200)
+        .json({ message: "Successfully delete lesson " + lessonId });
+    } catch (error) {
+      return res.status(500).json({ message: error });
+    }
+  }
+);
+
+fireBaseAdminRoute.get(
+  "/getStage/:category/:lessonId/:levelId/:stageId",
+  middleWare,
+  async (req: Request, res: Response) => {
+    const { category, lessonId, levelId, stageId } = req.params;
+    try {
+      const stageSnap = await db
+        .collection(category)
+        .doc(lessonId)
+        .collection("Levels")
+        .doc(levelId)
+        .collection("Stages")
+        .doc(stageId)
+        .get();
+      if (!stageSnap.exists) {
+        return res.status(404).json({ message: "Stage does not exist" });
+      }
+
+      const stageData = stageSnap.data();
+      return res.status(200).json(stageData);
+    } catch (error) {
+      return res.status(500).json({ message: error });
+    }
+  }
+);
+
+export default fireBaseAdminRoute;

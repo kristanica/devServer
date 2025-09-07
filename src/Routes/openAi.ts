@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import middleWare from "../Middleware/middleWare";
+import { middleWare } from "../Middleware/middleWare";
 import OpenAI from "openai";
 import dotenv from "dotenv";
 dotenv.config();
