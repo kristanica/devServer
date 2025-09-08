@@ -24,3 +24,5 @@ app.use("/fireBaseAdmin", fireBaseAdminRoute);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+//sample lol, nag ppratice aq ng branching through GIT bash
