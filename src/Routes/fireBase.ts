@@ -289,56 +289,62 @@ fireBaseRoute.post(
         .doc(lessonId)
         .collection("Levels")
         .doc(levelId)
-        .collection("Stages");
-      const q = stageData.orderBy("order");
-      const queriedData = await q.get();
+        .collection("Stages")
+        .doc(currentStageId);
 
-      const mappedStages = queriedData.docs.map((temp) => ({
-        id: temp.id,
-        type: temp.data().type,
-        ...temp.data(),
-      }));
-      const currentIndex = mappedStages.findIndex(
-        (stage) => stage.id === currentStageId
-      );
+      const currentStageData = (await stageData.get()).data()?.order;
 
-      if (currentIndex < mappedStages.length - 1) {
-        const nextStage = mappedStages[currentIndex + 1];
-        console.log(nextStage.id);
-        const nextStageRef = db
-          .collection("Users")
-          .doc(uid)
-          .collection("Progress")
-          .doc(subject)
-          .collection("Lessons")
-          .doc(lessonId)
-          .collection("Levels")
-          .doc(levelId)
-          .collection("Stages")
-          .doc(nextStage.id);
+      const nextStageQuery = await db
+        .collection(subject)
+        .doc(lessonId)
+        .collection("Levels")
+        .doc(levelId)
+        .collection("Stages")
+        .where("order", ">", currentStageData)
+        .orderBy("order")
+        .limit(1)
+        .get();
 
-        await nextStageRef.set(
-          {
-            status: true,
-          },
-          { merge: true }
-        );
-
-        return res.status(200).json({
-          message: "Next stage unlocked",
-          nextStageId: nextStage.id,
-          nextStageType: nextStage.type,
-        });
-      } else {
+      if (nextStageQuery.empty) {
         return res.status(200).json({
           message: "Level Completed",
           setLevelComplete: true,
         });
       }
+
+      const nextStageDoc = nextStageQuery.docs[0];
+      const nextStageId = nextStageDoc.id;
+      const nextStageType = nextStageDoc.data().type;
+
+      const nextStageRef = db
+        .collection("Users")
+        .doc(uid)
+        .collection("Progress")
+        .doc(subject)
+        .collection("Lessons")
+        .doc(lessonId)
+        .collection("Levels")
+        .doc(levelId)
+        .collection("Stages")
+        .doc(nextStageId);
+
+      await nextStageRef.set(
+        {
+          status: true,
+        },
+        { merge: true }
+      );
+
+      return res.status(200).json({
+        message: "Next stage unlocked",
+        nextStageId: nextStageId,
+        nextStageType: nextStageType,
+      });
     } catch (error) {
       console.log(error);
       return res.status(500).json({
-        message: "Something went wrong when fetching user progress" + error,
+        message:
+          "Something went wrong when unlock next stage or lesson" + error,
       });
     }
   }
