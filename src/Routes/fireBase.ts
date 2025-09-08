@@ -46,15 +46,17 @@ fireBaseRoute.get(
   }
 );
 
+//Purchasing an item.
+//Not final, might switch to transaction to prevent race conditions
 fireBaseRoute.post(
   "/purchaseItem",
   middleWare,
   async (req: IUserRequest, res: Response) => {
     const uid = req.user?.uid; // userid
     const { itemid, itemCost } = req.body;
-
+    //Can pass coins in the body instead, but might stick to this.
     try {
-      const userRef = db.collection("Users").doc(uid);
+      const userRef = db.collection("Users").doc(uid); // queries user data
       const userSnap = await userRef.get();
       if (!userSnap.exists) {
         return res.status(404).json({ message: "User does not exist" });
@@ -96,7 +98,9 @@ fireBaseRoute.post(
     }
   }
 );
+
 //get specific user information
+// Might be used on usermanagement
 fireBaseRoute.get(
   "/getSpecificUser/:uid",
   middleWare,
@@ -123,6 +127,7 @@ fireBaseRoute.get(
 );
 
 //gets all progress of user
+//This is deprecated, will delete later.
 type progressType = Record<string, boolean>;
 fireBaseRoute.get(
   "/userProgres/:subject",
@@ -223,24 +228,25 @@ fireBaseRoute.get(
               const stagesSnapShot = await stagesRef.get();
               const stages = stagesSnapShot.docs.map((stageDoc) => ({
                 id: stageDoc.id,
-                ...stageDoc.data(),
+                ...stageDoc.data(), //Gets all the stages
               }));
 
               return {
                 id: levelDoc.id,
-                ...levelDoc.data(),
+                ...levelDoc.data(), //gets all the level
                 stages,
               };
             })
           );
           return {
             id: lessonDoc.id,
-            ...lessonDoc.data(),
+            ...lessonDoc.data(), //gets all the lessons
             levels,
           };
         })
       );
 
+      //finally returns it as a bulk
       return res.status(200).json(lesson);
     } catch (error) {
       console.log(error);
@@ -252,7 +258,6 @@ fireBaseRoute.get(
 );
 
 //Fetches all Shop items
-
 fireBaseRoute.get("/Shop", middleWare, async (req: Request, res: Response) => {
   try {
     const shopSnapShot = await db.collection("Shop").get();
@@ -263,7 +268,7 @@ fireBaseRoute.get("/Shop", middleWare, async (req: Request, res: Response) => {
     const itemList = shopSnapShot.docs.map((shopTemp) => ({
       id: shopTemp.id,
       ...shopTemp.data(),
-    }));
+    })); // queries all the shop items
 
     return res.status(200).json(itemList);
   } catch (error) {
@@ -284,6 +289,7 @@ fireBaseRoute.post(
 
       const { subject, lessonId, levelId, currentStageId } = req.body;
 
+      //queries the currentStageData
       const stageData = db
         .collection(subject)
         .doc(lessonId)
@@ -292,7 +298,8 @@ fireBaseRoute.post(
         .collection("Stages")
         .doc(currentStageId);
 
-      const currentStageData = (await stageData.get()).data()?.order;
+      //Retrieves the order field
+      const currentStageDataOrder = (await stageData.get()).data()?.order;
 
       const nextStageQuery = await db
         .collection(subject)
@@ -300,11 +307,12 @@ fireBaseRoute.post(
         .collection("Levels")
         .doc(levelId)
         .collection("Stages")
-        .where("order", ">", currentStageData)
-        .orderBy("order")
-        .limit(1)
+        .where("order", ">", currentStageDataOrder) // gets all the stages where order is greater than currentStageDataOrder
+        .orderBy("order") // list by order
+        .limit(1) // only gets the next stage (limits to 1)
         .get();
 
+      //if the next stage is empty, unlock the next level instead
       if (nextStageQuery.empty) {
         return res.status(200).json({
           message: "Level Completed",
@@ -350,11 +358,12 @@ fireBaseRoute.post(
   }
 );
 
+//Return type for level progress
 type allProgressType = Record<
   string,
   Record<string, { rewardClaimed: boolean; status: boolean }>
 >;
-
+//Return type for stage progress
 type allStagesType = Record<string, Record<string, { status: boolean }>>;
 
 fireBaseRoute.get(
@@ -370,8 +379,10 @@ fireBaseRoute.get(
       let completedLevels = 0;
       let completedStages = 0;
 
+      // Gets all user's progress accross different lesson
       const subjectTemp = ["Html", "Css", "JavaScript", "Database"];
 
+      //Stores the progress sequentially in the object Html -> Css -> JavaSript -> Database
       for (const subjectLoop of subjectTemp) {
         allProgress[subjectLoop] = {};
         allStages[subjectLoop] = {};
@@ -391,12 +402,13 @@ fireBaseRoute.get(
           for (const levelsTemp of levelsDoc.docs) {
             const levelId = levelsTemp.id;
             const status: boolean = levelsTemp.data().status; // gets the status for each levels per specific user
+            const rewardClaimed: boolean = levelsTemp.data().rewardClaimed; // checks whether reward was claimed (still unused i think)
             allProgress[subjectLoop][`${lessonId}-${levelId}`] = {
-              rewardClaimed: levelsTemp.data().rewardClaimed,
+              rewardClaimed: rewardClaimed,
               status: status,
             };
 
-            if (status === true) completedLevels += 1;
+            if (status === true) completedLevels += 1; //Stores all the completed level progress
 
             const stagesDoc = await db
               .collection("Users")
@@ -415,9 +427,9 @@ fireBaseRoute.get(
               allStages[subjectLoop][
                 `${lessonId}-${levelId}-${stagesTemp.id}`
               ] = {
-                status: stageStatus,
-              }; //gets the status for each stages per specific user
-              if (stageStatus === true) completedStages += 1;
+                status: stageStatus, //gets the status for each stages per specific user
+              };
+              if (stageStatus === true) completedStages += 1; //Stores all the completed stages progress
             });
           }
         }

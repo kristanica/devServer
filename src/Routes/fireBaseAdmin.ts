@@ -28,6 +28,7 @@ fireBaseAdminRoute.post(
   }
 );
 
+//Gets all levels per specific category
 fireBaseAdminRoute.get(
   "/getAllLevel/:category",
   middleWare,
@@ -65,6 +66,7 @@ fireBaseAdminRoute.get(
   }
 );
 
+//Adding a level
 fireBaseAdminRoute.post(
   "/addLevel",
   middleWare,
@@ -86,6 +88,7 @@ fireBaseAdminRoute.post(
         return match ? parseInt(match[1]) : 0;
       });
 
+      //gets the next number
       const nextNumber =
         (newLevelNumber!.length > 0 ? Math.max(...newLevelNumber!) : 0) + 1;
 
@@ -110,6 +113,7 @@ fireBaseAdminRoute.post(
   }
 );
 
+//Adding a lesson
 fireBaseAdminRoute.post(
   "/addLesson",
   middleWare,
@@ -122,6 +126,7 @@ fireBaseAdminRoute.post(
         return match ? parseInt(match[1]) : 0;
       });
 
+      //gets the next number
       const nextNumber =
         (newLessonNumber!.length > 0 ? Math.max(...newLessonNumber!) : 0) + 1;
 
@@ -151,6 +156,7 @@ fireBaseAdminRoute.post(
   }
 );
 
+//Deleting lessons
 fireBaseAdminRoute.post(
   "/deleteLessons",
   middleWare,
@@ -173,9 +179,9 @@ fireBaseAdminRoute.post(
 
       lessonRef.docs.forEach((doc) => {
         batch.delete(doc.ref);
-      });
+      }); //pragmatically deletes all the Levels within lessons
 
-      await batch.commit();
+      await batch.commit(); //commits the deletion
 
       return res
         .status(200)
@@ -186,6 +192,7 @@ fireBaseAdminRoute.post(
   }
 );
 
+//Get's specific stage data
 fireBaseAdminRoute.get(
   "/getStage/:category/:lessonId/:levelId/:stageId",
   middleWare,
