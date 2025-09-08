@@ -31,7 +31,7 @@ fireBaseAdminRoute.post(
 fireBaseAdminRoute.get(
   "/getAllLevel/:category",
   middleWare,
-  adminMiddleWare,
+
   async (req: Request, res: Response) => {
     try {
       const { category } = req.params;

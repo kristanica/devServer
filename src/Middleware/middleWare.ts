@@ -42,7 +42,7 @@ export const adminMiddleWare = async (
 
   try {
     if (userSnapShot?.isAdmin === true) {
-      next();
+      return next();
     }
     return res.status(403).json({ message: "Admins only" });
   } catch (error) {

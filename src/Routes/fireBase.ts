@@ -279,26 +279,68 @@ fireBaseRoute.post(
   "/unlockStage",
   middleWare,
   async (req: IUserRequest, res: Response) => {
-    const uid = req.user?.uid;
+    try {
+      const uid = req.user?.uid;
 
-    const { subject, lessonId, levelId, nextStageId } = req.params;
+      const { subject, lessonId, levelId, currentStageId } = req.body;
 
-    const nextStageRef = db
-      .collection("Users")
-      .doc(uid)
-      .collection(subject)
-      .doc(lessonId)
-      .collection("Levels")
-      .doc(levelId)
-      .collection("Stages")
-      .doc(nextStageId);
+      const stageData = db
+        .collection(subject)
+        .doc(lessonId)
+        .collection("Levels")
+        .doc(levelId)
+        .collection("Stages");
+      const q = stageData.orderBy("order");
+      const queriedData = await q.get();
 
-    await nextStageRef.set(
-      {
-        status: true,
-      },
-      { merge: true }
-    );
+      const mappedStages = queriedData.docs.map((temp) => ({
+        id: temp.id,
+        type: temp.data().type,
+        ...temp.data(),
+      }));
+      const currentIndex = mappedStages.findIndex(
+        (stage) => stage.id === currentStageId
+      );
+
+      if (currentIndex < mappedStages.length - 1) {
+        const nextStage = mappedStages[currentIndex + 1];
+        console.log(nextStage.id);
+        const nextStageRef = db
+          .collection("Users")
+          .doc(uid)
+          .collection("Progress")
+          .doc(subject)
+          .collection("Lessons")
+          .doc(lessonId)
+          .collection("Levels")
+          .doc(levelId)
+          .collection("Stages")
+          .doc(nextStage.id);
+
+        await nextStageRef.set(
+          {
+            status: true,
+          },
+          { merge: true }
+        );
+
+        return res.status(200).json({
+          message: "Next stage unlocked",
+          nextStageId: nextStage.id,
+          nextStageType: nextStage.type,
+        });
+      } else {
+        return res.status(200).json({
+          message: "Level Completed",
+          setLevelComplete: true,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        message: "Something went wrong when fetching user progress" + error,
+      });
+    }
   }
 );
 
