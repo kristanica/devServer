@@ -10,10 +10,10 @@ dotenv.config();
 const PORT = process.env.PORT || 8082;
 const corsOptions = {
   origin: "*",
-}; //temporary
+}; //temporary, will switch to real URL when deployed
 
 const app = express();
-app.use(compression());
+app.use(compression()); //Compresses files daw e
 app.use(cors(corsOptions));
 
 app.use(express.json());

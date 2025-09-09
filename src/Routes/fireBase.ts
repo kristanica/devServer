@@ -10,6 +10,7 @@ interface IUserRequest extends express.Request {
 const fireBaseRoute = express();
 
 //Gets all stages within specific category, lesson and level
+//Native Specific
 fireBaseRoute.get(
   "/getSpecificStage/:category/:lessonId/:levelId",
   middleWare,
@@ -54,7 +55,7 @@ fireBaseRoute.post(
   async (req: IUserRequest, res: Response) => {
     const uid = req.user?.uid; // userid
     const { itemid, itemCost } = req.body;
-    //Can pass coins in the body instead, but might stick to this.
+    //Can pass the user's currency in the body instead, but might stick to this.
     try {
       const userRef = db.collection("Users").doc(uid); // queries user data
       const userSnap = await userRef.get();
@@ -67,6 +68,7 @@ fireBaseRoute.post(
       if (userData?.coins < itemCost) {
         return res.status(401).json({ message: "Not enough coins" });
       }
+      //Update's user coins on firebase
       await userRef.update({
         coins: admin.firestore.FieldValue.increment(-Number(itemCost)),
       });
@@ -90,7 +92,7 @@ fireBaseRoute.post(
       return res.status(200).json({
         message: "sucess on purchasing item",
         newCoins: userData?.coins - itemCost,
-      });
+      }); //returns the new coins for displaying
     } catch (error) {
       return res
         .status(500)
@@ -195,7 +197,8 @@ fireBaseRoute.get(
     }
   }
 );
-//gets ALL
+//Get's all the data per category
+//Web Specific
 fireBaseRoute.get(
   "/getAllData/:subject",
   middleWare,
