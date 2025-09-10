@@ -1,16 +1,12 @@
 import { db } from "../../admin/admin";
 import { Request, Response } from "express";
-import admin from "firebase-admin";
 export const deleteStage = async (req: Request, res: Response) => {
-  const { category, lessonId, levelId, stageId, state, stageType } =
-    req.body as {
-      category: string;
-      lessonId: string;
-      levelId: string;
-      stageId: string;
-      state: any;
-      stageType?: string;
-    };
+  const { category, lessonId, levelId, stageId } = req.body as {
+    category: string;
+    lessonId: string;
+    levelId: string;
+    stageId: string;
+  };
 
   try {
     const specificStageRef = db

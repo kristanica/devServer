@@ -21,6 +21,10 @@ export const deleteLesson = async (req: Request, res: Response) => {
 
     await batch.commit(); //commits the deletion
 
+    const lessonDelete = db.collection(category).doc(lessonId);
+
+    await lessonDelete.delete();
+
     return res
       .status(200)
       .json({ message: "Successfully delete lesson " + lessonId });

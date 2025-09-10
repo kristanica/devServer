@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "../../admin/admin";
 
-export const deleteLesson = async (req: Request, res: Response) => {
+export const getLevelData = async (req: Request, res: Response) => {
   try {
     const { category } = req.params;
 

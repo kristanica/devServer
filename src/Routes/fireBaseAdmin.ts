@@ -13,6 +13,9 @@ import { addLevel } from "../Controllers/adminLessonEditor/addLevel";
 import { addLesson } from "../Controllers/adminLessonEditor/addLesson";
 import { deleteLesson } from "../Controllers/adminLessonEditor/deleteLesson";
 import { getLevelData } from "../Controllers/adminLessonEditor/getLevelData";
+import { listStage } from "../Controllers/adminStageEditor/listStage";
+import { addStage } from "../Controllers/adminStageEditor/addStage";
+import { updateOrder } from "../Controllers/adminStageEditor/updateOrder";
 
 const fireBaseAdminRoute = express();
 
@@ -45,7 +48,7 @@ fireBaseAdminRoute.post("/addLevel", middleWare, addLevel);
 //Adding a lesson
 fireBaseAdminRoute.post("/addLesson", middleWare, addLesson);
 //Deleting lessons
-fireBaseAdminRoute.post("/deleteLessons", middleWare, deleteLesson);
+fireBaseAdminRoute.post("/deleteLesson", middleWare, deleteLesson);
 
 //Stage Editor routes. Might still be unstable. Untested
 //Gets all specific data of specific stage
@@ -59,4 +62,17 @@ fireBaseAdminRoute.post("/editStage", middleWare, editStage);
 //Deleting a stage and reordering them automatically
 fireBaseAdminRoute.post("/deleteStage", middleWare, deleteStage);
 
+//Listing Stages
+fireBaseAdminRoute.get(
+  "/listStage/:category/:lessonId/:levelId",
+  middleWare,
+  listStage
+);
+
+//Adding Stages
+fireBaseAdminRoute.post("/addStage", middleWare, addStage);
+
+//updating order
+
+fireBaseAdminRoute.post("/updateOrder", middleWare, updateOrder);
 export default fireBaseAdminRoute;
