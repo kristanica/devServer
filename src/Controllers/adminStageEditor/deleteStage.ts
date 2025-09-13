@@ -1,4 +1,4 @@
-import { db } from "../../admin/admin";
+import { bucket, db } from "../../admin/admin";
 import { Request, Response } from "express";
 export const deleteStage = async (req: Request, res: Response) => {
   const { category, lessonId, levelId, stageId } = req.body as {
@@ -29,6 +29,11 @@ export const deleteStage = async (req: Request, res: Response) => {
     const queryByOrder = stageRef.orderBy("order", "asc");
     const snapShot = await queryByOrder.get();
     const batch = db.batch();
+
+    const filePath = `stageFiles/${category}/${lessonId}/${levelId}/${stageId}`;
+    const [files] = await bucket.getFiles({ prefix: filePath });
+    const deleteFiles = files.map((file) => file.delete());
+    await Promise.all(deleteFiles);
 
     snapShot.docs.forEach((queryDoc, index) => {
       batch.update(queryDoc.ref, {

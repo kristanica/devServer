@@ -17,7 +17,6 @@ fireBaseRoute.get(
   async (req: Request, res: Response) => {
     try {
       const { category, lessonId, levelId } = req.params;
-
       const stagesRef = db
         .collection(category)
         .doc(lessonId)

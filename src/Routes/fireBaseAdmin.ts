@@ -1,7 +1,5 @@
 import express, { Request, Response } from "express";
-import { adminMiddleWare, middleWare } from "../Middleware/middleWare";
-
-import { db } from "../admin/admin";
+import { middleWare } from "../Middleware/middleWare";
 
 import * as admin from "firebase-admin";
 import { editStage } from "../Controllers/adminStageEditor/editStage";
@@ -9,16 +7,21 @@ import { deleteStage } from "../Controllers/adminStageEditor/deleteStage";
 import { getStageData } from "../Controllers/adminStageEditor/getStageData";
 
 import { addLevel } from "../Controllers/adminLessonEditor/addLevel";
-
+import multer from "multer";
 import { addLesson } from "../Controllers/adminLessonEditor/addLesson";
 import { deleteLesson } from "../Controllers/adminLessonEditor/deleteLesson";
 import { getLevelData } from "../Controllers/adminLessonEditor/getLevelData";
 import { listStage } from "../Controllers/adminStageEditor/listStage";
 import { addStage } from "../Controllers/adminStageEditor/addStage";
 import { updateOrder } from "../Controllers/adminStageEditor/updateOrder";
+import { uploadVideo } from "../Controllers/adminStageEditor/uploadVideo";
+import { getSpecificLevelData } from "../Controllers/adminLevelEditor/getSpecificLevelData";
+import { deleteLevel } from "../Controllers/adminLevelEditor/deleteLevel";
+import { editLevel } from "../Controllers/adminLevelEditor/editLevel";
+import uploadImage from "../Controllers/adminStageEditor/uploadImage";
 
-const fireBaseAdminRoute = express();
-
+const fireBaseAdminRoute = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 //Still not inused kasi need ata naka deploy na server dito
 fireBaseAdminRoute.post(
   "/setAdmin",
@@ -73,6 +76,31 @@ fireBaseAdminRoute.get(
 fireBaseAdminRoute.post("/addStage", middleWare, addStage);
 
 //updating order
-
 fireBaseAdminRoute.post("/updateOrder", middleWare, updateOrder);
+
+fireBaseAdminRoute.post(
+  "/uploadVideo",
+  middleWare,
+  upload.single("video"),
+  uploadVideo
+);
+
+//Level Editor
+fireBaseAdminRoute.get(
+  "/specificLevelData/:category/:lessonId/:levelId",
+  middleWare,
+  getSpecificLevelData
+);
+
+fireBaseAdminRoute.post("/deleteLevel", middleWare, deleteLevel);
+
+fireBaseAdminRoute.post("/editLevel", middleWare, editLevel);
+
+fireBaseAdminRoute.post(
+  "/uploadImage",
+  middleWare,
+  upload.single("replicateImage"),
+  uploadImage
+);
+
 export default fireBaseAdminRoute;

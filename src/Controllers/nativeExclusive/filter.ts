@@ -6,21 +6,39 @@ const filters: Record<
   { omit: string[]; toNumber?: (item: any) => void }
 > = {
   Lesson: {
-    omit: ["hint", "timer", "choices", "copyCode"],
+    omit: ["hint", "timer", "choices", "copyCode", "imageReplication"],
   },
   BugBust: {
-    omit: ["timer", "choices", "copyCode"],
+    omit: [
+      "timer",
+      "choices",
+      "copyCode",
+      "videoPresentation",
+      "imageReplication",
+    ],
   },
   CodeRush: {
-    omit: ["hint", "choices", "copyCode"],
+    omit: [
+      "hint",
+      "choices",
+      "copyCode",
+      "videoPresentation",
+      "imageReplication",
+    ],
     toNumber: (item) => ({ ...item, timer: Number(item.timer) }),
   },
   BrainBytes: {
-    omit: ["timer", "hint", "copyCode"],
+    omit: [
+      "timer",
+      "hint",
+      "copyCode",
+      "videoPresentation",
+      "imageReplication",
+    ],
   },
 
   CodeCrafter: {
-    omit: ["timer", "hint", "choices"],
+    omit: ["timer", "hint", "choices", "videoPresentation", "imageReplication"],
   },
 };
 
