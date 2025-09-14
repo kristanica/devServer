@@ -78,13 +78,6 @@ fireBaseAdminRoute.post("/addStage", middleWare, addStage);
 //updating order
 fireBaseAdminRoute.post("/updateOrder", middleWare, updateOrder);
 
-fireBaseAdminRoute.post(
-  "/uploadVideo",
-  middleWare,
-  upload.single("video"),
-  uploadVideo
-);
-
 //Level Editor
 fireBaseAdminRoute.get(
   "/specificLevelData/:category/:lessonId/:levelId",
@@ -96,11 +89,20 @@ fireBaseAdminRoute.post("/deleteLevel", middleWare, deleteLevel);
 
 fireBaseAdminRoute.post("/editLevel", middleWare, editLevel);
 
+//Seperate call, must be sent as formData and make content-type "multipart/form-data"
 fireBaseAdminRoute.post(
   "/uploadImage",
   middleWare,
-  upload.single("replicateImage"),
+  upload.single("replicateImage"), //Must be sent as URI. Name of the image on formData MUST be replicateImage
   uploadImage
+);
+
+//Seperate call, must be sent as formData and make content-type "multipart/form-data"
+fireBaseAdminRoute.post(
+  "/uploadVideo",
+  middleWare,
+  upload.single("video"), //Must be sent as URI. Name of the video on formData MUST be video
+  uploadVideo
 );
 
 export default fireBaseAdminRoute;

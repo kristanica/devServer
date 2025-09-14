@@ -17,14 +17,18 @@ const uploadImage = async (req: Request, res: Response) => {
       .doc(levelId)
       .collection("Stages")
       .doc(stageId);
-    const destination = `stageFiles/${category}/${lessonId}/${levelId}/${stageId}/ReplicatePhoto${stageId}.jpg`;
+    const destination = `stageFiles/${category}/${lessonId}/${levelId}/${stageId}/ReplicatePhoto${stageId}.jpg`; //location of the image
     const file = bucket.file(destination);
-    if (!req.file?.buffer) {
+
+    //access the image using req.file
+
+    if (!req.file) {
       return res.status(400).json({ message: "No image buffer provided" });
     }
+    //Stores image into file storage
     await file.save(req.file.buffer, {
       metadata: {
-        contentType: req.file.mimetype,
+        contentType: req.file.mimetype, // takes in the type of the file from form data (i.e image/jpeg)
       },
       resumable: false,
     });
@@ -34,6 +38,7 @@ const uploadImage = async (req: Request, res: Response) => {
       expires: "03-01-2030",
     });
 
+    //sets the uri for the stage
     await stageRef.set(
       {
         imageReplication: signedUrl,
