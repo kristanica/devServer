@@ -15,6 +15,7 @@ const filters: Record<
       "copyCode",
       "videoPresentation",
       "imageReplication",
+      "blocks",
     ],
   },
   CodeRush: {
@@ -24,6 +25,7 @@ const filters: Record<
       "copyCode",
       "videoPresentation",
       "imageReplication",
+      "blocks",
     ],
     toNumber: (item) => ({ ...item, timer: Number(item.timer) }),
   },
@@ -34,6 +36,7 @@ const filters: Record<
       "copyCode",
       "videoPresentation",
       "imageReplication",
+      "blocks",
     ],
   },
 

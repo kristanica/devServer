@@ -22,7 +22,7 @@ const uploadImage = async (req: Request, res: Response) => {
 
     //access the image using req.file
 
-    if (!req.file) {
+    if (!req.file?.buffer) {
       return res.status(400).json({ message: "No image buffer provided" });
     }
     //Stores image into file storage
@@ -47,7 +47,7 @@ const uploadImage = async (req: Request, res: Response) => {
         merge: true,
       }
     );
-
+    
     return res.status(200).json({ message: "Image has been set" });
   } catch (error) {
     return res

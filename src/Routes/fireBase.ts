@@ -4,6 +4,7 @@ import { middleWare } from "../Middleware/middleWare";
 import { db } from "../admin/admin";
 import { messaging } from "firebase-admin";
 import * as admin from "firebase-admin";
+import { fetchLesson } from "../Controllers/user/fetchLesson";
 interface IUserRequest extends express.Request {
   user?: any;
 }
@@ -11,6 +12,9 @@ const fireBaseRoute = express();
 
 //Gets all stages within specific category, lesson and level
 //Native Specific
+
+fireBaseRoute.get("/getLesson/:category", middleWare, fetchLesson);
+
 fireBaseRoute.get(
   "/getSpecificStage/:category/:lessonId/:levelId",
   middleWare,
